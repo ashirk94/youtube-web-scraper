@@ -37,12 +37,21 @@ scroll_to_bottom(driver)
 html = driver.page_source
 driver.close()
 
-# find video titles
+# find video titles and view counts
 soup = BeautifulSoup(html, 'lxml')
-details = soup.find_all('a', id = 'video-title-link')
-details.pop()
+titles = soup.find_all('a', id = 'video-title-link')
+metadata = soup.find_all('span', class_ = 'inline-metadata-item style-scope ytd-video-meta-block')
+copy = metadata.copy()
+for item in copy:
+    if str(item.decode_contents()).find('ago') != -1:
+        metadata.remove(item)
+
+titles.pop()
 
 # write video titles to file
 with open('titles.txt', 'wb') as f:
-    for x in details:
-        f.write(str(x.get('title')+ '\n').encode())
+    for x in range(len(titles)):
+        title = titles[x]
+        viewCount = metadata[x]
+        f.write(str(title.get('title') + '\n').encode())
+        f.write(str(viewCount.decode_contents() + '\n').encode())
